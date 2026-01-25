@@ -43,6 +43,7 @@ class _CreateCommunityScreenState extends ConsumerState<CreateCommunityScreen> {
                   ),
                   SizedBox(height: 10),
                   TextField(
+                    controller: communityNameController,
                     decoration: InputDecoration(
                       hintText: 'r/Community_name',
                       filled: true,
