@@ -21,6 +21,14 @@ final communityControllerProvider =
       );
     });
 
+final getCommunityByNameProvider = StreamProvider.family<Community, String>((
+  ref,
+  name,
+) {
+  final communityController = ref.watch(communityControllerProvider.notifier);
+  return communityController.getCommunityByName(name);
+});
+
 class CommunityController extends StateNotifier<bool> {
   final CommunityRepository _communityRepository;
   final Ref _ref;
@@ -37,11 +45,11 @@ class CommunityController extends StateNotifier<bool> {
     final uid = _ref.read(userProvider)?.uid ?? '';
     Community community = Community(
       id: name,
-      name: '',
+      name: name,
       banner: Constants.bannerDefault,
       avatar: Constants.avatarDefault,
-      members: [],
-      mods: [],
+      members: [uid],
+      mods: [uid],
     );
 
     final res = await _communityRepository.createCommunity(community);
@@ -56,5 +64,9 @@ class CommunityController extends StateNotifier<bool> {
   Stream<List<Community>> getUserCommunities() {
     final uid = _ref.read(userProvider)!.uid;
     return _communityRepository.getUserComunities(uid);
+  }
+
+  Stream<Community> getCommunityByName(String name) {
+    return _communityRepository.getCommunityByName(name);
   }
 }
