@@ -16,7 +16,7 @@ final userCommunitiesProvider = StreamProvider((ref) {
 final communityControllerProvider =
     StateNotifierProvider<CommunityController, bool>((ref) {
       return CommunityController(
-        communityRepository: ref.watch(CommunityRepositoryProvider),
+        communityRepository: ref.watch(communityRepositoryProvider),
         ref: ref,
       );
     });
