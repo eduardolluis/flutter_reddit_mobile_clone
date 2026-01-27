@@ -8,6 +8,7 @@ import 'package:routemaster/routemaster.dart';
 class SearchCommunityDelegate extends SearchDelegate {
   final WidgetRef ref;
   SearchCommunityDelegate({required this.ref});
+
   @override
   List<Widget>? buildActions(BuildContext context) {
     return [
@@ -32,9 +33,15 @@ class SearchCommunityDelegate extends SearchDelegate {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return ref
-        .watch(searchCommunityProvider(query))
-        .when(
+    if (query.isEmpty) {
+      return const Center(child: Text('Search for communities...'));
+    }
+
+    return Consumer(
+      builder: (context, ref, child) {
+        final communities = ref.watch(searchCommunityProvider(query));
+
+        return communities.when(
           data: (communities) => ListView.builder(
             itemCount: communities.length,
             itemBuilder: (BuildContext context, int index) {
@@ -51,6 +58,8 @@ class SearchCommunityDelegate extends SearchDelegate {
           error: (error, stackTrace) => ErrorText(error: error.toString()),
           loading: () => const Loader(),
         );
+      },
+    );
   }
 
   void navigateToCommunity(BuildContext context, String communityName) {
