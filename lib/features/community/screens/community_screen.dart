@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reddit_clone/core/common/error_text.dart';
 import 'package:reddit_clone/core/common/loader.dart';
+import 'package:reddit_clone/features/auth/controller/auth_controller.dart';
 import 'package:reddit_clone/features/community/controller/community_controller.dart';
+import 'package:reddit_clone/models/community_model.dart';
+
 import 'package:routemaster/routemaster.dart';
 
 class CommunityScreen extends ConsumerWidget {
@@ -13,8 +16,17 @@ class CommunityScreen extends ConsumerWidget {
     Routemaster.of(context).push('/mod-tools/$name');
   }
 
+  void joinCommunity(WidgetRef ref, Community community, BuildContext context) {
+    ref
+        .read(communityControllerProvider.notifier)
+        .joinCommunity(community, context);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userProvider)!;
+    final isGuest = !user.isAuthenticated;
+
     return Scaffold(
       body: ref
           .watch(getCommunityByNameProvider(name))
@@ -48,31 +60,57 @@ class CommunityScreen extends ConsumerWidget {
                             radius: 35,
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 5),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "r/${community.name}",
+                              'r/${community.name}',
                               style: const TextStyle(
                                 fontSize: 19,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            OutlinedButton(
-                              onPressed: () {
-                                navigateToModTools(context);
-                              },
-                              style: OutlinedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 25,
-                                ),
-                              ),
-                              child: const Text("Mod Tools"),
-                            ),
+                            if (!isGuest)
+                              community.mods.contains(user.uid)
+                                  ? OutlinedButton(
+                                      onPressed: () {
+                                        navigateToModTools(context);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 25,
+                                        ),
+                                      ),
+                                      child: const Text('Mod Tools'),
+                                    )
+                                  : OutlinedButton(
+                                      onPressed: () => joinCommunity(
+                                        ref,
+                                        community,
+                                        context,
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 25,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        community.members.contains(user.uid)
+                                            ? 'Joined'
+                                            : 'Join',
+                                      ),
+                                    ),
                           ],
                         ),
                         Padding(
