@@ -61,6 +61,24 @@ class CommunityRepository {
     }
   }
 
+  Stream<List<Community>> searchCommunities(String query) {
+    return _communities
+        .where(
+          'name',
+          isGreaterThanOrEqualTo: query.isEmpty ? 0 : query,
+          isLessThan: query.isEmpty
+              ? null
+              : query.substring(0, query.length - 1) +
+                    String.fromCharCode(query.codeUnitAt(query.length - 1) + 1),
+        )
+        .snapshots()
+        .map(
+          (event) => event.docs
+              .map((e) => Community.fromMap(e.data() as Map<String, dynamic>))
+              .toList(),
+        );
+  }
+
   CollectionReference get _communities =>
       _firestore.collection(FirebaseConstants.communitiesCollection);
 }
