@@ -11,8 +11,6 @@ import 'package:reddit_clone/core/providers/firebase_providers.dart';
 import 'package:reddit_clone/core/type_defs.dart';
 import 'package:reddit_clone/models/user_model.dart';
 
-final userProvider = StateProvider<UserModel?>((ref) => null);
-
 final authRepositoryProvider = Provider(
   (ref) => AuthRepository(
     firestore: ref.read(firestoreProvider),
@@ -96,3 +94,4 @@ class AuthRepository {
     await _auth.signOut();
   }
 }
+  
