@@ -13,11 +13,17 @@ class ProfileDrawer extends ConsumerWidget {
 
   void navigateToUserProfile(BuildContext context, String uid) {
     Routemaster.of(context).push('/u/$uid');
-  } 
+  }
+
+  void toggleTheme(WidgetRef ref) {
+    ref.read(themeNotifierProvider.notifier).toggleTheme();
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider);
+
+    ref.watch(themeNotifierProvider);
 
     if (user == null) {
       return const Drawer(
@@ -36,7 +42,7 @@ class ProfileDrawer extends ConsumerWidget {
             const SizedBox(height: 10),
             Text(
               "u/${user.name}",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 10),
             const Divider(),
@@ -50,7 +56,13 @@ class ProfileDrawer extends ConsumerWidget {
               leading: Icon(Icons.logout, color: Pallete.redColor),
               onTap: () => logOut(ref),
             ),
-            Switch.adaptive(value: true, onChanged: (val) {}),
+
+            Switch.adaptive(
+              value:
+                  ref.read(themeNotifierProvider.notifier).mode ==
+                  ThemeMode.dark,
+              onChanged: (_) => toggleTheme(ref),
+            ),
           ],
         ),
       ),

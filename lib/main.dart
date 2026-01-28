@@ -37,7 +37,7 @@ class MyApp extends ConsumerWidget {
                   return MaterialApp.router(
                     debugShowCheckedModeBanner: false,
                     title: 'Reddit',
-                    theme: Pallete.darkModeAppTheme,
+                    theme: ref.watch(themeNotifierProvider),
                     routerDelegate: RoutemasterDelegate(
                       routesBuilder: (context) => loggedInRoute,
                     ),
