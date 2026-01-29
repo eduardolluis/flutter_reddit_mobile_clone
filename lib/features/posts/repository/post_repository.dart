@@ -5,6 +5,7 @@ import 'package:reddit_clone/core/constants/firebase_constants.dart';
 import 'package:reddit_clone/core/failure.dart';
 import 'package:reddit_clone/core/providers/firebase_providers.dart';
 import 'package:reddit_clone/core/type_defs.dart';
+import 'package:reddit_clone/models/comment_model.dart';
 import 'package:reddit_clone/models/community_model.dart';
 import 'package:reddit_clone/models/post_model.dart';
 
@@ -19,9 +20,18 @@ class PostRepository {
   CollectionReference get _posts =>
       firestore.collection(FirebaseConstants.postsCollection);
 
-  FutureVoid addPost(Post post) async {
+  CollectionReference get _comments =>
+      firestore.collection(FirebaseConstants.commentsCollection);
+
+  FutureVoid addPost(Comment comment) async {
     try {
-      return right(_posts.doc(post.id).set(post.toMap()));
+      await _comments.doc(comment.id).set(comment.toMap());
+
+      return right(
+        _posts.doc(_comments.id).update({
+          'commentCount': FieldValue.increment(1),
+        }),
+      );
     } on FirebaseException catch (e) {
       return left(Failure(message: e.message!));
     } catch (e) {
@@ -88,5 +98,34 @@ class PostRepository {
         'downvotes': FieldValue.arrayUnion([userId]),
       });
     }
+  }
+
+  Stream<Post> getPostById(String postId) {
+    return _posts
+        .doc(postId)
+        .snapshots()
+        .map((event) => Post.fromMap(event.data() as Map<String, dynamic>));
+  }
+
+  FutureVoid addComment(Comment comment) async {
+    try {
+      return right(_comments.doc(comment.id).set(comment.toMap()));
+    } on FirebaseException catch (e) {
+      return left(Failure(message: e.message!));
+    } catch (e) {
+      return left(Failure(message: e.toString()));
+    }
+  }
+
+  Stream<List<Post>> getCommentsOfPost(String postId) {
+    return _comments
+        .where('postId', isEqualTo: postId)
+        .orderBy("createdAt", descending: true)
+        .snapshots()
+        .map(
+          (event) => event.docs
+              .map((e) => Post.fromMap(e.data() as Map<String, dynamic>))
+              .toList(),
+        );
   }
 }
