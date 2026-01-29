@@ -12,6 +12,10 @@ class LoginScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoading = ref.watch(authControllerProvider);
 
+    void signInAsGuest() {
+      ref.read(authControllerProvider.notifier).signInAsGuest(context);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Image.asset(Constants.logoPath, height: 40),
@@ -19,7 +23,7 @@ class LoginScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextButton(
-              onPressed: () {},
+              onPressed: () => signInAsGuest(),
               child: const Text(
                 'Skip',
                 style: TextStyle(fontWeight: FontWeight.bold),
