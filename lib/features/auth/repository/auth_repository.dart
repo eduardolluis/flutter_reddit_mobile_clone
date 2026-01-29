@@ -63,7 +63,17 @@ class AuthRepository {
           uid: userCredential.user!.uid,
           isAuthenticated: true,
           karma: 0,
-          awards: [],
+          awards: [
+            'til',
+            'gold',
+            'platinum',
+            'helpful',
+            'wholesome',
+            'thankyou',
+            'rocket',
+            'plusone',
+            'awesomeanswer',
+          ],
         );
 
         await _users.doc(userModel.uid).set(userModel.toMap());
