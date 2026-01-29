@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:reddit_clone/theme/pallete.dart';
+// import 'package:reddit_clone/theme/pallete.dart';
 import 'package:routemaster/routemaster.dart';
 
 class AddPostScreen extends ConsumerWidget {
@@ -14,7 +14,7 @@ class AddPostScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     double cardHeightWidth = 120;
     double iconSize = 60;
-    final currentTheme = ref.watch(themeNotifierProvider);
+    // final currentTheme = ref.watch(themeNotifierProvider);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

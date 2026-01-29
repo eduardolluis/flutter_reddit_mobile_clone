@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:reddit_clone/core/providers/storage_repository_provider.dart';
 import 'package:reddit_clone/core/utils.dart';
 import 'package:reddit_clone/features/auth/controller/auth_controller.dart';
-import 'package:reddit_clone/features/auth/repository/auth_repository.dart';
 import 'package:reddit_clone/features/posts/repository/post_repository.dart';
 import 'package:reddit_clone/models/community_model.dart';
 import 'package:reddit_clone/models/post_model.dart';
@@ -21,6 +20,14 @@ final postControllerProvider = StateNotifierProvider<PostController, bool>((
     storageRepository: ref.watch(storageRepositoryProvider),
     ref: ref,
   );
+});
+
+final userPostsProvider = StreamProvider.family<List<Post>, List<Community>>((
+  ref,
+  List<Community> communities,
+) {
+  final postController = ref.watch(postControllerProvider.notifier);
+  return postController.fetchUserPosts(communities);
 });
 
 class PostController extends StateNotifier<bool> {
@@ -171,5 +178,12 @@ class PostController extends StateNotifier<bool> {
         });
       },
     );
+  }
+
+  Stream<List<Post>> fetchUserPosts(List<Community> communities) {
+    if (communities.isNotEmpty) {
+      return _postRepository.fetchUserPosts(communities);
+    }
+    return Stream.value([]);
   }
 }
