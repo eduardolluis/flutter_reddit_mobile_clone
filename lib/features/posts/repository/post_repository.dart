@@ -15,6 +15,7 @@ final postRepositoryProvider = Provider(
 
 class PostRepository {
   final FirebaseFirestore firestore;
+
   PostRepository({required this.firestore});
 
   CollectionReference get _posts =>
@@ -23,15 +24,9 @@ class PostRepository {
   CollectionReference get _comments =>
       firestore.collection(FirebaseConstants.commentsCollection);
 
-  FutureVoid addPost(Comment comment) async {
+  FutureVoid addPost(Post post) async {
     try {
-      await _comments.doc(comment.id).set(comment.toMap());
-
-      return right(
-        _posts.doc(_comments.id).update({
-          'commentCount': FieldValue.increment(1),
-        }),
-      );
+      return right(_posts.doc(post.id).set(post.toMap()));
     } on FirebaseException catch (e) {
       return left(Failure(message: e.message!));
     } catch (e) {
@@ -83,7 +78,8 @@ class PostRepository {
   }
 
   void downvote(Post post, String userId) async {
-    if (post.downvotes.contains(userId)) {
+    // Si el usuario ya dio upvote, quitarlo
+    if (post.upvotes.contains(userId)) {
       _posts.doc(post.id).update({
         'upvotes': FieldValue.arrayRemove([userId]),
       });
@@ -109,7 +105,13 @@ class PostRepository {
 
   FutureVoid addComment(Comment comment) async {
     try {
-      return right(_comments.doc(comment.id).set(comment.toMap()));
+      await _comments.doc(comment.id).set(comment.toMap());
+
+      await _posts.doc(comment.postId).update({
+        'commentCount': FieldValue.increment(1),
+      });
+
+      return right(null);
     } on FirebaseException catch (e) {
       return left(Failure(message: e.message!));
     } catch (e) {
@@ -117,14 +119,14 @@ class PostRepository {
     }
   }
 
-  Stream<List<Post>> getCommentsOfPost(String postId) {
+  Stream<List<Comment>> getCommentsOfPost(String postId) {
     return _comments
         .where('postId', isEqualTo: postId)
         .orderBy("createdAt", descending: true)
         .snapshots()
         .map(
           (event) => event.docs
-              .map((e) => Post.fromMap(e.data() as Map<String, dynamic>))
+              .map((e) => Comment.fromMap(e.data() as Map<String, dynamic>))
               .toList(),
         );
   }

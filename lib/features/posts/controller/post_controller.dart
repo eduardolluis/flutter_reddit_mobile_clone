@@ -90,7 +90,7 @@ class PostController extends StateNotifier<bool> {
       description: description,
     );
 
-    final res = await _postRepository.addPost(post as Comment);
+    final res = await _postRepository.addPost(post);
     state = false;
     res.fold((l) => showSnackBar(context, l.message), (r) {
       showSnackBar(context, "Posted successfully!");
@@ -131,7 +131,7 @@ class PostController extends StateNotifier<bool> {
       link: link,
     );
 
-    final res = await _postRepository.addPost(post as Comment);
+    final res = await _postRepository.addPost(post);
     state = false;
     res.fold((l) => showSnackBar(context, l.message), (r) {
       showSnackBar(context, "Posted successfully!");
@@ -184,7 +184,7 @@ class PostController extends StateNotifier<bool> {
           link: r,
         );
 
-        final res = await _postRepository.addPost(post as Comment);
+        final res = await _postRepository.addPost(post);
         state = false;
         res.fold((l) => showSnackBar(context, l.message), (r) {
           showSnackBar(context, "Posted successfully!");
@@ -247,6 +247,6 @@ class PostController extends StateNotifier<bool> {
   }
 
   Stream<List<Comment>> fetchPostComments(String postId) {
-    return _postRepository.getCommentsOfPost(postId).cast<List<Comment>>();
+    return _postRepository.getCommentsOfPost(postId);
   }
 }
