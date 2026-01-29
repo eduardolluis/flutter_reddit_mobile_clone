@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
@@ -24,48 +25,58 @@ class _AddPostTypeScreenState extends ConsumerState<AddPostTypeScreen> {
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
   final linkController = TextEditingController();
+
   File? bannerFile;
+  Uint8List? bannerWebFile;
+
   List<Community> communities = [];
   Community? selectedCommunity;
 
   @override
   void dispose() {
-    super.dispose();
     titleController.dispose();
     descriptionController.dispose();
+    linkController.dispose();
+    super.dispose();
   }
 
   void selectBannerImage() async {
     final res = await pickImage();
+
     if (res != null) {
       setState(() {
-        bannerFile = File(res.files.first.path!);
+        bannerWebFile = res.files.first.bytes;
+
+        final path = res.files.first.path;
+        if (path != null) {
+          bannerFile = File(path);
+        }
       });
     }
   }
 
   void sharePost() {
-    if (widget.type == "image" &&
-        bannerFile != null &&
+    if (widget.type == 'image' &&
+        (bannerFile != null || bannerWebFile != null) &&
         titleController.text.isNotEmpty) {
       ref
           .read(postControllerProvider.notifier)
           .shareImagePost(
             context: context,
             title: titleController.text.trim(),
-            selectedcommunity: selectedCommunity ?? communities[0],
-            file: bannerFile!,
+            selectedCommunity: selectedCommunity ?? communities[0],
+            file: bannerFile,
           );
-    } else if (widget.type == "text" && titleController.text.isNotEmpty) {
+    } else if (widget.type == 'text' && titleController.text.isNotEmpty) {
       ref
           .read(postControllerProvider.notifier)
           .shareTextPost(
             context: context,
             title: titleController.text.trim(),
-            community: selectedCommunity ?? communities[0],
+            selectedCommunity: selectedCommunity ?? communities[0],
             description: descriptionController.text.trim(),
           );
-    } else if (widget.type == "link" &&
+    } else if (widget.type == 'link' &&
         titleController.text.isNotEmpty &&
         linkController.text.isNotEmpty) {
       ref
@@ -73,7 +84,7 @@ class _AddPostTypeScreenState extends ConsumerState<AddPostTypeScreen> {
           .shareLinkPost(
             context: context,
             title: titleController.text.trim(),
-            community: selectedCommunity ?? communities[0],
+            selectedCommunity: selectedCommunity ?? communities[0],
             link: linkController.text.trim(),
           );
     } else {
@@ -86,13 +97,14 @@ class _AddPostTypeScreenState extends ConsumerState<AddPostTypeScreen> {
     final isTypeImage = widget.type == 'image';
     final isTypeText = widget.type == 'text';
     final isTypeLink = widget.type == 'link';
+
     final currentTheme = ref.watch(themeNotifierProvider);
     final isLoading = ref.watch(postControllerProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Post ${widget.type}"),
-        actions: [TextButton(onPressed: sharePost, child: const Text("Share"))],
+        title: Text('Post ${widget.type}'),
+        actions: [TextButton(onPressed: sharePost, child: const Text('Share'))],
       ),
       body: isLoading
           ? const Loader()
@@ -104,14 +116,14 @@ class _AddPostTypeScreenState extends ConsumerState<AddPostTypeScreen> {
                     controller: titleController,
                     decoration: const InputDecoration(
                       filled: true,
-                      hintText: 'Enter title here',
-
+                      hintText: 'Enter Title here',
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.all(18),
                     ),
                     maxLength: 30,
                   ),
                   const SizedBox(height: 10),
+
                   if (isTypeImage)
                     GestureDetector(
                       onTap: selectBannerImage,
@@ -123,21 +135,16 @@ class _AddPostTypeScreenState extends ConsumerState<AddPostTypeScreen> {
                           strokeCap: StrokeCap.round,
                           color: currentTheme.textTheme.bodyMedium!.color!,
                         ),
-                        child: Container(
-                          width: double.infinity,
-                          height: 150,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: bannerFile != null
-                              ? Image.file(bannerFile!)
-                              : const Center(
-                                  child: Icon(
-                                    Icons.camera_alt_outlined,
-                                    size: 40,
-                                  ),
+                        child: bannerWebFile != null
+                            ? Image.memory(bannerWebFile!)
+                            : bannerFile != null
+                            ? Image.file(bannerFile!)
+                            : const Center(
+                                child: Icon(
+                                  Icons.camera_alt_outlined,
+                                  size: 40,
                                 ),
-                        ),
+                              ),
                       ),
                     ),
 
@@ -146,30 +153,28 @@ class _AddPostTypeScreenState extends ConsumerState<AddPostTypeScreen> {
                       controller: descriptionController,
                       decoration: const InputDecoration(
                         filled: true,
-                        hintText: 'Enter description here',
-
+                        hintText: 'Enter Description here',
                         border: InputBorder.none,
-
                         contentPadding: EdgeInsets.all(18),
                       ),
                       maxLines: 5,
                     ),
+
                   if (isTypeLink)
                     TextField(
                       controller: linkController,
                       decoration: const InputDecoration(
                         filled: true,
-                        hintText: 'Enter link  here',
-
+                        hintText: 'Enter link here',
                         border: InputBorder.none,
-
                         contentPadding: EdgeInsets.all(18),
                       ),
                     ),
+
                   const SizedBox(height: 20),
-                  Align(
+                  const Align(
                     alignment: Alignment.topLeft,
-                    child: Text("Select Community"),
+                    child: Text('Select Community'),
                   ),
 
                   ref
@@ -182,11 +187,11 @@ class _AddPostTypeScreenState extends ConsumerState<AddPostTypeScreen> {
                             return const SizedBox();
                           }
 
-                          return DropdownButton(
+                          return DropdownButton<Community>(
                             value: selectedCommunity ?? data[0],
                             items: data
                                 .map(
-                                  (e) => DropdownMenuItem(
+                                  (e) => DropdownMenuItem<Community>(
                                     value: e,
                                     child: Text(e.name),
                                   ),

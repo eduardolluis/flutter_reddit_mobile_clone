@@ -13,6 +13,8 @@ class CommunityScreen extends ConsumerWidget {
   final String name;
   const CommunityScreen({super.key, required this.name});
 
+  // http://localhost:4000/r/flutter
+
   void navigateToModTools(BuildContext context) {
     Routemaster.of(context).push('/mod-tools/$name');
   }
@@ -116,7 +118,7 @@ class CommunityScreen extends ConsumerWidget {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(top: 10),
-                          child: Text("${community.members.length} members"),
+                          child: Text('${community.members.length} members'),
                         ),
                       ]),
                     ),
@@ -124,15 +126,17 @@ class CommunityScreen extends ConsumerWidget {
                 ];
               },
               body: ref
-                  .watch(getCommunityPostsProvider(community.name))
+                  .watch(getCommunityPostsProvider(name))
                   .when(
-                    data: (posts) => ListView.builder(
-                      itemCount: posts.length,
-                      itemBuilder: (context, index) {
-                        final post = posts[index];
-                        return PostCard(post: post);
-                      },
-                    ),
+                    data: (data) {
+                      return ListView.builder(
+                        itemCount: data.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final post = data[index];
+                          return PostCard(post: post);
+                        },
+                      );
+                    },
                     error: (error, stackTrace) {
                       return ErrorText(error: error.toString());
                     },

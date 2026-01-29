@@ -66,7 +66,10 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                 horizontal: 25,
                               ),
                             ),
-                            child: const Text("Edit Profile"),
+                            child: const Text(
+                              "Edit Profile",
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
                         ),
                       ],

@@ -9,31 +9,29 @@ import 'package:reddit_clone/models/comment_model.dart';
 import 'package:reddit_clone/models/community_model.dart';
 import 'package:reddit_clone/models/post_model.dart';
 
-final postRepositoryProvider = Provider(
-  (ref) => PostRepository(firestore: ref.watch(firestoreProvider)),
-);
+final postRepositoryProvider = Provider((ref) {
+  return PostRepository(firestore: ref.watch(firestoreProvider));
+});
 
 class PostRepository {
-  final FirebaseFirestore firestore;
-
-  PostRepository({required this.firestore});
+  final FirebaseFirestore _firestore;
+  PostRepository({required FirebaseFirestore firestore})
+    : _firestore = firestore;
 
   CollectionReference get _posts =>
-      firestore.collection(FirebaseConstants.postsCollection);
-
+      _firestore.collection(FirebaseConstants.postsCollection);
   CollectionReference get _comments =>
-      firestore.collection(FirebaseConstants.commentsCollection);
-
+      _firestore.collection(FirebaseConstants.commentsCollection);
   CollectionReference get _users =>
-      firestore.collection(FirebaseConstants.usersCollection);
+      _firestore.collection(FirebaseConstants.usersCollection);
 
   FutureVoid addPost(Post post) async {
     try {
       return right(_posts.doc(post.id).set(post.toMap()));
     } on FirebaseException catch (e) {
-      return left(Failure(message: e.message!));
+      throw e.message!;
     } catch (e) {
-      return left(Failure(message: e.toString()));
+      return left(Failure(message: '$e'));
     }
   }
 
@@ -43,7 +41,19 @@ class PostRepository {
           'communityName',
           whereIn: communities.map((e) => e.name).toList(),
         )
-        .orderBy("createdAt", descending: true)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (event) => event.docs
+              .map((e) => Post.fromMap(e.data() as Map<String, dynamic>))
+              .toList(),
+        );
+  }
+
+  Stream<List<Post>> fetchGuestPosts() {
+    return _posts
+        .orderBy('createdAt', descending: true)
+        .limit(10)
         .snapshots()
         .map(
           (event) => event.docs
@@ -56,9 +66,9 @@ class PostRepository {
     try {
       return right(_posts.doc(post.id).delete());
     } on FirebaseException catch (e) {
-      return left(Failure(message: e.message!));
+      throw e.message!;
     } catch (e) {
-      return left(Failure(message: e.toString()));
+      return left(Failure(message: '$e'));
     }
   }
 
@@ -81,7 +91,6 @@ class PostRepository {
   }
 
   void downvote(Post post, String userId) async {
-    // Si el usuario ya dio upvote, quitarlo
     if (post.upvotes.contains(userId)) {
       _posts.doc(post.id).update({
         'upvotes': FieldValue.arrayRemove([userId]),
@@ -110,22 +119,22 @@ class PostRepository {
     try {
       await _comments.doc(comment.id).set(comment.toMap());
 
-      await _posts.doc(comment.postId).update({
-        'commentCount': FieldValue.increment(1),
-      });
-
-      return right(null);
+      return right(
+        _posts.doc(comment.postId).update({
+          'commentCount': FieldValue.increment(1),
+        }),
+      );
     } on FirebaseException catch (e) {
-      return left(Failure(message: e.message!));
+      throw e.message!;
     } catch (e) {
-      return left(Failure(message: e.toString()));
+      return left(Failure(message: '$e'));
     }
   }
 
   Stream<List<Comment>> getCommentsOfPost(String postId) {
     return _comments
         .where('postId', isEqualTo: postId)
-        .orderBy("createdAt", descending: true)
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map(
           (event) => event.docs
@@ -148,9 +157,9 @@ class PostRepository {
         }),
       );
     } on FirebaseException catch (e) {
-      return left(Failure(message: e.message!));
+      throw e.message!;
     } catch (e) {
-      return left(Failure(message: e.toString()));
+      return left(Failure(message: '$e'));
     }
   }
 }
